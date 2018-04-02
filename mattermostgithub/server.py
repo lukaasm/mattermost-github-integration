@@ -32,6 +32,8 @@ def root():
     event = request.headers['X-Github-Event']
 
     msg = ""
+    attachment = ""
+
     if event == "ping":
         msg = "ping from %s" % data['repository']['full_name']
     elif event == "pull_request":
@@ -72,7 +74,9 @@ def root():
     elif event == "push":
         if not (data['deleted'] and data['forced']):
             if not data['ref'].startswith("refs/tags/"):
-                msg = Push(data).commits()
+                ctx = Push(data)
+                msg = ctx.msg()
+                attachment = ctx.commits()
     elif event == "commit_comment":
         if data['action'] == "created":
             msg = CommitComment(data).created()
@@ -89,19 +93,22 @@ def root():
                data['action'] in config.GITHUB_IGNORE_ACTIONS[event]:
                 return "Notification action ignored (as per configuration)"
 
-            post(msg, url, channel)
+            post(msg, attachment, url, channel)
             return "Notification successfully posted to Mattermost"
         else:
             return "Notification ignored (repository is blacklisted)."
     else:
         return "Not implemented", 400
 
-def post(text, url, channel):
+def post(text, attachment, url, channel):
     data = {}
     data['text'] = text
     data['channel'] = channel
     data['username'] = config.USERNAME
     data['icon_url'] = config.ICON_URL
+
+    if attachment:
+        data['attachments']['fields'] = [ {'short':True, 'title':'Commits', 'value':attachment } ]
 
     headers = {'Content-Type': 'application/json'}
     r = requests.post(url, headers=headers, data=json.dumps(data), verify=False)

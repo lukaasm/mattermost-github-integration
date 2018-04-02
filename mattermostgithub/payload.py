@@ -193,7 +193,7 @@ class Push(Payload):
     def __init__(self, data):
         Payload.__init__(self, data)
 
-    def commits(self):
+    def msg(self):
         commits = self.data['commits']
         branch = self.data['ref'].replace("refs/heads/", "")
         branch_url = self.data['repository']['html_url'] + "/tree/" + branch
@@ -202,6 +202,11 @@ class Push(Payload):
         changeset = "changesets" if len(commits) > 1 else "changeset"
         msg = []
         msg.append("%s pushed %s %s to [%s](%s) at %s:" % (self.user_link(), len(commits), changeset, branch, branch_url, self.repo_link()))
+
+        return "".join(msg)
+
+    def commits(self):
+        commits = self.data['commits']
         for commit in commits:
             cid  = commit['id'][:7]
             curl = commit['url']
@@ -209,6 +214,7 @@ class Push(Payload):
             ctext = "- [`%s`](%s): %s" % (cid, curl, cmsg)
             msg.append("\n")
             msg.append(ctext)
+
         return "".join(msg)
 
 class Wiki(Payload):
