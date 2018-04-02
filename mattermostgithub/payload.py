@@ -206,6 +206,7 @@ class Push(Payload):
         return "".join(msg)
 
     def commits(self):
+        msg = []
         commits = self.data['commits']
         for commit in commits:
             cid  = commit['id'][:7]
