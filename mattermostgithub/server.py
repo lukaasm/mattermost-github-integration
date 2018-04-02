@@ -108,7 +108,7 @@ def post(text, attachment, url, channel):
     data['icon_url'] = config.ICON_URL
 
     if attachment:
-        data['attachments']['fields'] = [ {'short':True, 'title':'Commits', 'value':attachment } ]
+        data['attachments'] = { 'fields':[ {'short':True, 'title':'Commits', 'value':attachment } ]}
 
     headers = {'Content-Type': 'application/json'}
     r = requests.post(url, headers=headers, data=json.dumps(data), verify=False)
